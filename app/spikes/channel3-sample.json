@@ -1,0 +1,374 @@
+{
+  "products": [
+    {
+      "id": "oVX3LIz",
+      "title": "Sherpa Blanket",
+      "description": "A luxurious and exceptionally soft black sherpa fleece blanket designed for ultimate warmth and comfort. Its thick, fuzzy texture provides a cozy feel, perfect for snuggling up during colder months. The blanket features a rich, cable-knit inspired pattern on one side and a plush sherpa on the other, offering a balance of style and coziness. Ideal for beds, sofas, or as a decorative throw, this blanket is a must-have for adding warmth and comfort to any living space. It is presented as a high-quality, durable, and easy-care home textile.",
+      "brands": [
+        {
+          "id": "yLEi",
+          "name": "Bedsure"
+        }
+      ],
+      "images": [
+        {
+          "url": "https://cdn.trychannel3.com/87904788-a5e4-430d-86a6-25c77f313b88?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": null,
+          "is_main_image": true,
+          "shot_type": "lifestyle",
+          "alt_text": "Black sherpa fleece blanket folded on a wooden surface."
+        }
+      ],
+      "category": {
+        "slug": "throw-blankets",
+        "title": "Throw Blankets",
+        "path": [
+          {
+            "slug": "home-garden",
+            "title": "Home & Garden"
+          },
+          {
+            "slug": "linens-bedding",
+            "title": "Linens & Bedding"
+          },
+          {
+            "slug": "bedding",
+            "title": "Bedding"
+          },
+          {
+            "slug": "blankets",
+            "title": "Blankets"
+          },
+          {
+            "slug": "throw-blankets",
+            "title": "Throw Blankets"
+          }
+        ],
+        "has_children": false
+      },
+      "gender": null,
+      "age": "adult",
+      "materials": [
+        "Sherpa",
+        "Fleece"
+      ],
+      "key_features": [
+        "Fuzzy Soft Cozy Blanket",
+        "Fleece Thick Warm Blanket",
+        "GentleSoft™️"
+      ],
+      "colors": [],
+      "offers": [
+        {
+          "url": "https://buy.trychannel3.com/oVX3LIz-BIP9-GyFtPA?o=01KSSQRNZ4478QD2EZD07YXMC3&aid=01M63EN0X3WV6KFZ2PXX5K0VA0",
+          "domain": "wayfair.com",
+          "price": {
+            "price": 31.3,
+            "compare_at_price": 169.97,
+            "currency": "USD"
+          },
+          "availability": "InStock",
+          "condition": "new",
+          "max_commission_rate": 0,
+          "dimensions": null
+        }
+      ],
+      "variants": null,
+      "structured_attributes": {
+        "season": [
+          "Winter"
+        ],
+        "pattern": [
+          "Striped"
+        ],
+        "fabric": [
+          "Fleece",
+          "Sherpa"
+        ],
+        "care-instructions": [
+          "Machine washable",
+          "Tumble dry"
+        ],
+        "warmth-rating": [
+          "Warm"
+        ],
+        "bedding-size": [
+          "Twin"
+        ]
+      },
+      "ratings": {
+        "value": 4.64,
+        "count": 180,
+        "source_count": 1
+      }
+    },
+    {
+      "id": "OPir8O1",
+      "title": "Fleece Blanket",
+      "description": "A soft and cozy fleece blanket, perfect for adding warmth and comfort to your couch, sofa, or bed. Made with 300GSM fleece, this blanket is plush, thick, and fuzzy, making it ideal for snuggling up during colder months. Available in various colors and sizes to match your decor.",
+      "brands": [
+        {
+          "id": "yLEi",
+          "name": "Bedsure"
+        }
+      ],
+      "images": [
+        {
+          "url": "https://cdn.trychannel3.com/b8dd0a22-c86e-40a8-8041-7e2f4ca64746?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": null,
+          "is_main_image": true,
+          "shot_type": "detail",
+          "alt_text": "Close-up of a soft, off-white fleece blanket with plush texture."
+        },
+        {
+          "url": "https://cdn.trychannel3.com/b336b955-9d7b-4ee4-a7e2-4183a5bdc142?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": "https://cdn.trychannel3.com/e2492a0a-12d9-40c8-9b1f-c360769e754b?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "is_main_image": false,
+          "shot_type": "lifestyle",
+          "alt_text": "Off-white fleece blanket draped over a light gray armchair."
+        },
+        {
+          "url": "https://cdn.trychannel3.com/ba7213fc-dcad-406c-ac0b-01aeaf0805cf?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": "https://cdn.trychannel3.com/981cb0f1-b171-448b-be2a-3eb59af7b9fe?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "is_main_image": false,
+          "shot_type": "lifestyle",
+          "alt_text": "A cat tucked under a soft, off-white fleece blanket."
+        }
+      ],
+      "category": {
+        "slug": "throw-blankets",
+        "title": "Throw Blankets",
+        "path": [
+          {
+            "slug": "home-garden",
+            "title": "Home & Garden"
+          },
+          {
+            "slug": "linens-bedding",
+            "title": "Linens & Bedding"
+          },
+          {
+            "slug": "bedding",
+            "title": "Bedding"
+          },
+          {
+            "slug": "blankets",
+            "title": "Blankets"
+          },
+          {
+            "slug": "throw-blankets",
+            "title": "Throw Blankets"
+          }
+        ],
+        "has_children": false
+      },
+      "gender": null,
+      "age": "adult",
+      "materials": [
+        "fleece",
+        "microfiber"
+      ],
+      "key_features": [
+        "300GSM fleece",
+        "plush",
+        "soft",
+        "thick",
+        "fuzzy",
+        "cozy",
+        "lightweight"
+      ],
+      "colors": [
+        {
+          "hex": "#a19e93",
+          "percentage": 0.3999
+        },
+        {
+          "hex": "#7e8280",
+          "percentage": 0.2957
+        },
+        {
+          "hex": "#f7f6f0",
+          "percentage": 0.2366
+        },
+        {
+          "hex": "#545754",
+          "percentage": 0.0674
+        }
+      ],
+      "offers": [
+        {
+          "url": "https://buy.trychannel3.com/OPir8O1-BIP9-GyFtPA?o=01KT5RZWQW22TGCNZ65A3AE1TE&aid=01M63EN0X3WV6KFZ2PXX5K0VA0",
+          "domain": "wayfair.com",
+          "price": {
+            "price": 14.99,
+            "compare_at_price": 79.97,
+            "currency": "USD"
+          },
+          "availability": "InStock",
+          "condition": "new",
+          "max_commission_rate": 0,
+          "dimensions": null
+        }
+      ],
+      "variants": null,
+      "structured_attributes": {
+        "pattern": [
+          "Solid"
+        ],
+        "season": [
+          "Fall"
+        ],
+        "warmth-rating": [
+          "Warm"
+        ],
+        "fabric": [
+          "Fleece",
+          "Polyester",
+          "Sherpa"
+        ]
+      },
+      "ratings": {
+        "value": 4.62,
+        "count": 1,
+        "source_count": 1
+      }
+    },
+    {
+      "id": "eOmJB8Q",
+      "title": "Fleece Blanket 300GSM",
+      "description": "This Bedsure fleece blanket is made from high-density microfiber with an ultra-plush weave, providing a soft, lightweight, and cozy feel. Its 300GSM (grams per square meter) fabric offers warmth suitable for year-round use, making it ideal for couches, sofas, beds, and travel. The blanket features a solid teal blue color and is designed for durability and easy care.",
+      "brands": [
+        {
+          "id": "yLEi",
+          "name": "Bedsure"
+        }
+      ],
+      "images": [
+        {
+          "url": "https://cdn.trychannel3.com/0c513ed9-b690-4862-92c6-d3d1052b06dc?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": "https://cdn.trychannel3.com/f5cc1dd5-86d6-4cf7-a4c8-ff45d319d984?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "is_main_image": true,
+          "shot_type": "hero",
+          "alt_text": "Folded teal fleece blanket texture."
+        },
+        {
+          "url": "https://cdn.trychannel3.com/13bba251-e30a-4697-85e3-3c3ab3384349?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": "https://cdn.trychannel3.com/a07f1134-3df5-4fee-9696-426aaf59f498?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "is_main_image": false,
+          "shot_type": "lifestyle",
+          "alt_text": "Orange and white cat lying on a teal fleece blanket."
+        },
+        {
+          "url": "https://cdn.trychannel3.com/35098a13-0631-405c-a895-4671b41bfef1?aid=01M63EN0X3WV6KFZ2PXX5K0VA0&mid=BIP9",
+          "cleaned_url": null,
+          "is_main_image": false,
+          "shot_type": "product_information",
+          "alt_text": "Features of the Bedsure fleece blanket: Sturdy, Extra Soft, Lightweight."
+        }
+      ],
+      "category": {
+        "slug": "throw-blankets",
+        "title": "Throw Blankets",
+        "path": [
+          {
+            "slug": "home-garden",
+            "title": "Home & Garden"
+          },
+          {
+            "slug": "linens-bedding",
+            "title": "Linens & Bedding"
+          },
+          {
+            "slug": "bedding",
+            "title": "Bedding"
+          },
+          {
+            "slug": "blankets",
+            "title": "Blankets"
+          },
+          {
+            "slug": "throw-blankets",
+            "title": "Throw Blankets"
+          }
+        ],
+        "has_children": false
+      },
+      "gender": null,
+      "age": "adult",
+      "materials": [
+        "microfiber",
+        "fleece"
+      ],
+      "key_features": [
+        "300GSM",
+        "ultra-plush weave",
+        "high-density microfiber",
+        "soft",
+        "lightweight",
+        "cozy"
+      ],
+      "colors": [
+        {
+          "hex": "#087891",
+          "percentage": 0.5031
+        },
+        {
+          "hex": "#1795ad",
+          "percentage": 0.1729
+        },
+        {
+          "hex": "#045d74",
+          "percentage": 0.1548
+        },
+        {
+          "hex": "#033c4e",
+          "percentage": 0.0896
+        },
+        {
+          "hex": "#68b8ca",
+          "percentage": 0.0796
+        }
+      ],
+      "offers": [
+        {
+          "url": "https://buy.trychannel3.com/eOmJB8Q-BIP9-GyFtPA?o=01KSVF8BTGSVNEHTQZZ1CSMC4D&aid=01M63EN0X3WV6KFZ2PXX5K0VA0",
+          "domain": "wayfair.com",
+          "price": {
+            "price": 16.99,
+            "compare_at_price": 89.97,
+            "currency": "USD"
+          },
+          "availability": "InStock",
+          "condition": "new",
+          "max_commission_rate": 0,
+          "dimensions": null
+        }
+      ],
+      "variants": null,
+      "structured_attributes": {
+        "warmth-rating": [
+          "Warm"
+        ],
+        "pattern": [
+          "Striped"
+        ],
+        "care-instructions": [
+          "Machine washable"
+        ],
+        "fabric": [
+          "Fleece",
+          "Polyester"
+        ],
+        "season": [
+          "Winter"
+        ]
+      },
+      "ratings": {
+        "value": 4.51,
+        "count": 135,
+        "source_count": 1
+      }
+    }
+  ],
+  "next_page_token": "eyJjYWNoZV9rZXkiOiAic2VhcmNoOmNjN2RkYzYwYjRiZmRiZTkiLCAib2Zmc2V0IjogM30="
+}

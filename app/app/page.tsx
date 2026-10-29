@@ -1,68 +1,169 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+
+type Result = {
+  status: "blocked" | "needs_approval" | "ready_to_pay" | "no_results";
+  message: string;
+  recommendation: null | {
+    title: string;
+    brand: string | null;
+    imageUrl: string | null;
+    merchantDomain: string;
+    priceCents: number;
+    explanation: string;
+  };
+  alternatives: { productId: string; title: string; priceCents: number; merchantDomain: string }[];
+  decision: { verdict: string; reasons: string[] };
+};
+
+const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
+
+const STYLES = {
+  ready_to_pay: { box: "border-green-600 bg-green-50", label: "Good to go", text: "text-green-800" },
+  needs_approval: { box: "border-amber-500 bg-amber-50", label: "Waiting for approval", text: "text-amber-800" },
+  blocked: { box: "border-red-600 bg-red-50", label: "Stopped for your safety", text: "text-red-800" },
+  no_results: { box: "border-gray-400 bg-gray-50", label: "Let's try again", text: "text-gray-800" },
+} as const;
+
+const EXAMPLES = [
+  "I need a warm blanket under $40",
+  "I need reading glasses",
+  "I'd like a kitchen knife set",
+];
+
+export default function ParentPage() {
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Result | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(value: string) {
+    if (value.trim().length < 3) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: value }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
+      setResult(data);
+    } catch (e: any) {
+      setError(e.message ?? "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const s = result ? STYLES[result.status] : null;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen w-full bg-white">
+      <main className="mx-auto max-w-2xl px-5 py-8 text-gray-900">
+        <h1 className="text-4xl font-bold">Hello, Margaret</h1>
+        <p className="mt-2 text-xl text-gray-600">What would you like to buy today?</p>
+
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="For example: I need a warm blanket under $40"
+          rows={3}
+          className="mt-6 w-full rounded-xl border-2 border-gray-300 bg-white p-4 text-xl text-gray-900 focus:border-blue-600 focus:outline-none"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+        <button
+          onClick={() => submit(text)}
+          disabled={loading || text.trim().length < 3}
+          className="mt-3 w-full rounded-xl bg-blue-700 px-6 py-4 text-2xl font-semibold text-white disabled:opacity-50"
+        >
+          {loading ? "Looking for you..." : "Find it for me"}
+        </button>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              onClick={() => {
+                setText(ex);
+                submit(ex);
+              }}
+              className="rounded-full border border-gray-300 px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {ex}
+            </button>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {error && <p className="mt-6 text-xl text-red-700">{error}</p>}
+
+        {result && s && (
+          <section className={`mt-8 rounded-2xl border-2 p-5 ${s.box}`}>
+            <p className={`text-lg font-semibold uppercase tracking-wide ${s.text}`}>{s.label}</p>
+            <p className="mt-2 text-2xl">{result.message}</p>
+
+            {result.recommendation && (
+              <div className="mt-5 flex gap-4 rounded-xl bg-white p-4">
+                {result.recommendation.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={result.recommendation.imageUrl}
+                    alt={result.recommendation.title}
+                    className="h-28 w-28 shrink-0 rounded-lg object-cover"
+                  />
+                )}
+                <div>
+                  <h2 className="text-2xl font-semibold">{result.recommendation.title}</h2>
+                  <p className="text-lg text-gray-600">
+                    {result.recommendation.brand ? `${result.recommendation.brand} · ` : ""}
+                    {result.recommendation.merchantDomain}
+                  </p>
+                  <p className="mt-1 text-3xl font-bold">{usd(result.recommendation.priceCents)}</p>
+                </div>
+              </div>
+            )}
+
+            {result.recommendation && (
+              <p className="mt-4 text-xl text-gray-800">{result.recommendation.explanation}</p>
+            )}
+
+            {result.status !== "ready_to_pay" &&
+              result.status !== "no_results" &&
+              result.decision.reasons.length > 0 && (
+                <ul className="mt-4 list-disc pl-6 text-lg text-gray-800">
+                  {result.decision.reasons.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              )}
+
+            {result.status === "ready_to_pay" && (
+              <button
+                disabled
+                className="mt-5 w-full rounded-xl bg-yellow-400 px-6 py-4 text-2xl font-semibold text-gray-900 opacity-60"
+                title="PayPal checkout is added on Day 3"
+              >
+                Pay with PayPal (coming next)
+              </button>
+            )}
+
+            {result.alternatives.length > 0 && result.status !== "blocked" && (
+              <div className="mt-5">
+                <p className="text-lg font-semibold text-gray-700">Other choices</p>
+                <ul className="mt-1 text-lg text-gray-700">
+                  {result.alternatives.map((a) => (
+                    <li key={a.productId}>
+                      {a.title} · {usd(a.priceCents)} · {a.merchantDomain}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );
