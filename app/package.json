@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "demo:reset": "tsx --env-file=.env.local scripts/demo-reset.ts",
+    "demo:check": "tsx --env-file=.env.local scripts/demo-check.ts"
   },
   "dependencies": {
     "@channel3/sdk": "^4.5.0",

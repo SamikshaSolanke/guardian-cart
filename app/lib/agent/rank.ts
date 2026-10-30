@@ -47,14 +47,14 @@ export async function rankCandidates(
   );
   if (pool.length === 0) return null;
 
-  const compact = pool.map((c) => ({
+  const compact = pool.slice(0, 6).map((c) => ({
     id: c.productId,
     title: c.title,
     brand: c.brand,
     price: c.priceCents / 100,
     merchant: c.merchantDomain,
     category: c.categoryTitle,
-    about: c.description.slice(0, 200),
+    about: c.description.slice(0, 100),
   }));
 
   const out = await callLLM(

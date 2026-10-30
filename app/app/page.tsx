@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Result = {
   requestId: number;
@@ -43,13 +43,40 @@ const EXAMPLES = [
   "I'd like a kitchen knife set",
 ];
 
+const PROGRESS = [
+  "Understanding what you need...",
+  "Looking through the stores...",
+  "Checking Alex's spending rules...",
+  "Almost there...",
+];
+
+const FOCUS = "focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+
 export default function ParentPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [paying, setPaying] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [banner, setBanner] = useState<Banner>(null);
+
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setVoiceSupported(!!SR);
+  }, []);
+
+  // Rotate the progress message while the agent works.
+  useEffect(() => {
+    if (!loading) return;
+    setProgress(0);
+    const id = setInterval(() => setProgress((p) => Math.min(p + 1, PROGRESS.length - 1)), 1800);
+    return () => clearInterval(id);
+  }, [loading]);
 
   // Handle the redirect back from PayPal (?paid=ID, ?cancelled=ID, ?error=...)
   useEffect(() => {
@@ -95,6 +122,35 @@ export default function ParentPage() {
     }, 3000);
     return () => clearInterval(id);
   }, [result]);
+
+  function toggleVoice() {
+    if (listening) {
+      recRef.current?.stop();
+      return;
+    }
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e: any) => {
+      const heard = e.results?.[0]?.[0]?.transcript;
+      if (heard) setText(heard);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    setListening(true);
+    rec.start();
+  }
+
+  function startOver() {
+    setResult(null);
+    setError(null);
+    setBanner(null);
+    setText("");
+  }
 
   async function submit(value: string) {
     if (value.trim().length < 3) return;
@@ -145,105 +201,156 @@ export default function ParentPage() {
         <p className="mt-2 text-xl text-gray-600">What would you like to buy today?</p>
 
         {banner && (
-          <p className={`mt-6 rounded-xl border-2 p-4 text-xl ${BANNER_STYLES[banner.kind]}`}>{banner.text}</p>
+          <p
+            role="status"
+            className={`mt-6 rounded-xl border-2 p-4 text-xl ${BANNER_STYLES[banner.kind]}`}
+          >
+            {banner.text}
+          </p>
         )}
 
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="For example: I need a warm blanket under $40"
-          rows={3}
-          className="mt-6 w-full rounded-xl border-2 border-gray-300 bg-white p-4 text-xl text-gray-900 focus:border-blue-600 focus:outline-none"
-        />
+        <div className="relative mt-6">
+          <label htmlFor="request" className="sr-only">
+            What would you like to buy?
+          </label>
+          <textarea
+            id="request"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={listening ? "Listening... go ahead and speak" : "For example: I need a warm blanket under $40"}
+            rows={3}
+            className={`w-full rounded-xl border-2 border-gray-300 bg-white p-4 pr-16 text-xl text-gray-900 focus:border-blue-600 focus:outline-none ${FOCUS}`}
+          />
+          {voiceSupported && (
+            <button
+              type="button"
+              onClick={toggleVoice}
+              aria-label={listening ? "Stop listening" : "Speak your request"}
+              aria-pressed={listening}
+              className={`absolute right-3 top-3 flex h-12 w-12 items-center justify-center rounded-full text-2xl ${FOCUS} ${
+                listening ? "animate-pulse bg-red-600 text-white" : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+              }`}
+            >
+              {listening ? "■" : "🎤"}
+            </button>
+          )}
+        </div>
 
         <button
           onClick={() => submit(text)}
           disabled={loading || text.trim().length < 3}
-          className="mt-3 w-full rounded-xl bg-blue-700 px-6 py-4 text-2xl font-semibold text-white disabled:opacity-50"
+          className={`mt-3 w-full rounded-xl bg-blue-700 px-6 py-4 text-2xl font-semibold text-white disabled:opacity-50 ${FOCUS}`}
         >
           {loading ? "Looking for you..." : "Find it for me"}
         </button>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {EXAMPLES.map((ex) => (
-            <button
-              key={ex}
-              onClick={() => {
-                setText(ex);
-                submit(ex);
-              }}
-              className="rounded-full border border-gray-300 px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
-            >
-              {ex}
-            </button>
-          ))}
-        </div>
+        {!result && !loading && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                onClick={() => {
+                  setText(ex);
+                  submit(ex);
+                }}
+                className={`rounded-full border border-gray-300 px-4 py-2 text-lg text-gray-700 hover:bg-gray-100 ${FOCUS}`}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {error && <p className="mt-6 text-xl text-red-700">{error}</p>}
-
-        {result && s && (
-          <section className={`mt-8 rounded-2xl border-2 p-5 ${s.box}`}>
-            <p className={`text-lg font-semibold uppercase tracking-wide ${s.text}`}>{s.label}</p>
-            <p className="mt-2 text-2xl">{result.message}</p>
-
-            {result.recommendation && (
-              <div className="mt-5 flex gap-4 rounded-xl bg-white p-4">
-                {result.recommendation.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={result.recommendation.imageUrl}
-                    alt={result.recommendation.title}
-                    className="h-28 w-28 shrink-0 rounded-lg object-cover"
-                  />
-                )}
-                <div>
-                  <h2 className="text-2xl font-semibold">{result.recommendation.title}</h2>
-                  <p className="text-lg text-gray-600">
-                    {result.recommendation.brand ? `${result.recommendation.brand} · ` : ""}
-                    {result.recommendation.merchantDomain}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold">{usd(result.recommendation.priceCents)}</p>
-                </div>
+        <div aria-live="polite">
+          {loading && (
+            <div className="mt-8 rounded-2xl border-2 border-blue-200 bg-blue-50 p-5">
+              <p className="text-2xl text-blue-900">{PROGRESS[progress]}</p>
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-blue-100">
+                <div className="h-2 w-1/3 animate-pulse rounded-full bg-blue-600" />
               </div>
-            )}
+            </div>
+          )}
 
-            {result.recommendation && (
-              <p className="mt-4 text-xl text-gray-800">{result.recommendation.explanation}</p>
-            )}
+          {error && <p className="mt-6 text-xl text-red-700">{error}</p>}
 
-            {(result.status === "needs_approval" || result.status === "blocked" || result.status === "denied") &&
-              result.decision.reasons.length > 0 && (
-                <ul className="mt-4 list-disc pl-6 text-lg text-gray-800">
-                  {result.decision.reasons.map((r, i) => (
-                    <li key={i}>{r}</li>
-                  ))}
-                </ul>
+          {result && s && (
+            <section className={`mt-8 rounded-2xl border-2 p-5 ${s.box}`}>
+              <p className={`text-lg font-semibold uppercase tracking-wide ${s.text}`}>{s.label}</p>
+              <p className="mt-2 text-2xl">{result.message}</p>
+
+              {result.recommendation && (
+                <div className="mt-5 flex gap-4 rounded-xl bg-white p-4">
+                  {result.recommendation.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={result.recommendation.imageUrl}
+                      alt={result.recommendation.title}
+                      className="h-28 w-28 shrink-0 rounded-lg object-cover"
+                    />
+                  )}
+                  <div>
+                    <h2 className="text-2xl font-semibold">{result.recommendation.title}</h2>
+                    <p className="text-lg text-gray-600">
+                      {result.recommendation.brand ? `${result.recommendation.brand} · ` : ""}
+                      {result.recommendation.merchantDomain}
+                    </p>
+                    <p className="mt-1 text-3xl font-bold">{usd(result.recommendation.priceCents)}</p>
+                  </div>
+                </div>
               )}
 
-            {(result.status === "ready_to_pay" || result.status === "approved") && (
-              <button
-                onClick={() => pay(result.requestId)}
-                disabled={paying}
-                className="mt-5 w-full rounded-xl bg-yellow-400 px-6 py-4 text-2xl font-semibold text-gray-900 disabled:opacity-60"
-              >
-                {paying ? "Taking you to PayPal..." : "Pay with PayPal"}
-              </button>
-            )}
+              {result.recommendation && (
+                <p className="mt-4 text-xl text-gray-800">{result.recommendation.explanation}</p>
+              )}
 
-            {result.alternatives.length > 0 && result.status !== "blocked" && (
-              <div className="mt-5">
-                <p className="text-lg font-semibold text-gray-700">Other choices</p>
-                <ul className="mt-1 text-lg text-gray-700">
-                  {result.alternatives.map((a) => (
-                    <li key={a.productId}>
-                      {a.title} · {usd(a.priceCents)} · {a.merchantDomain}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </section>
-        )}
+              {(result.status === "needs_approval" || result.status === "blocked" || result.status === "denied") &&
+                result.decision.reasons.length > 0 && (
+                  <ul className="mt-4 list-disc pl-6 text-lg text-gray-800">
+                    {result.decision.reasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                )}
+
+              {(result.status === "ready_to_pay" || result.status === "approved") && (
+                <button
+                  onClick={() => pay(result.requestId)}
+                  disabled={paying}
+                  className={`mt-5 w-full rounded-xl bg-yellow-400 px-6 py-4 text-2xl font-semibold text-gray-900 disabled:opacity-60 ${FOCUS}`}
+                >
+                  {paying ? "Taking you to PayPal..." : "Pay with PayPal"}
+                </button>
+              )}
+
+              {result.status === "needs_approval" && (
+                <p className="mt-4 flex items-center gap-2 text-lg text-amber-900">
+                  <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-amber-500" />
+                  Waiting for Alex. This page updates by itself.
+                </p>
+              )}
+
+              {result.alternatives.length > 0 && result.status !== "blocked" && (
+                <div className="mt-5">
+                  <p className="text-lg font-semibold text-gray-700">Other choices</p>
+                  <ul className="mt-1 text-lg text-gray-700">
+                    {result.alternatives.map((a) => (
+                      <li key={a.productId}>
+                        {a.title} · {usd(a.priceCents)} · {a.merchantDomain}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <button
+                onClick={startOver}
+                className={`mt-6 w-full rounded-xl border-2 border-gray-400 bg-white px-6 py-3 text-xl font-semibold text-gray-800 hover:bg-gray-100 ${FOCUS}`}
+              >
+                Ask for something else
+              </button>
+            </section>
+          )}
+        </div>
       </main>
     </div>
   );
