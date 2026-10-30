@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Result = {
+  requestId: number;
   status: "blocked" | "needs_approval" | "ready_to_pay" | "no_results";
   message: string;
   recommendation: null | {
@@ -17,6 +18,8 @@ type Result = {
   decision: { verdict: string; reasons: string[] };
 };
 
+type Banner = { kind: "success" | "info" | "error"; text: string } | null;
+
 const usd = (c: number) => `$${(c / 100).toFixed(2)}`;
 
 const STYLES = {
@@ -24,6 +27,12 @@ const STYLES = {
   needs_approval: { box: "border-amber-500 bg-amber-50", label: "Waiting for approval", text: "text-amber-800" },
   blocked: { box: "border-red-600 bg-red-50", label: "Stopped for your safety", text: "text-red-800" },
   no_results: { box: "border-gray-400 bg-gray-50", label: "Let's try again", text: "text-gray-800" },
+} as const;
+
+const BANNER_STYLES = {
+  success: "border-green-600 bg-green-50 text-green-900",
+  info: "border-blue-500 bg-blue-50 text-blue-900",
+  error: "border-red-600 bg-red-50 text-red-900",
 } as const;
 
 const EXAMPLES = [
@@ -35,14 +44,45 @@ const EXAMPLES = [
 export default function ParentPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [banner, setBanner] = useState<Banner>(null);
+
+  // Handle the redirect back from PayPal (?paid=ID, ?cancelled=ID, ?error=...)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const paid = q.get("paid");
+    const cancelled = q.get("cancelled");
+    const err = q.get("error");
+    if (!paid && !cancelled && !err) return;
+    window.history.replaceState({}, "", "/");
+
+    if (paid) {
+      fetch(`/api/status?requestId=${paid}`)
+        .then((r) => r.json())
+        .then((d) =>
+          setBanner({
+            kind: "success",
+            text: d.title
+              ? `Payment complete! You bought ${d.title} for ${usd(d.priceCents)}.`
+              : "Payment complete!",
+          })
+        )
+        .catch(() => setBanner({ kind: "success", text: "Payment complete!" }));
+    } else if (cancelled) {
+      setBanner({ kind: "info", text: "No problem, you didn't pay. Nothing was charged." });
+    } else {
+      setBanner({ kind: "error", text: "The payment didn't go through. Nothing was charged. Please try again." });
+    }
+  }, []);
 
   async function submit(value: string) {
     if (value.trim().length < 3) return;
     setLoading(true);
     setError(null);
     setResult(null);
+    setBanner(null);
     try {
       const res = await fetch("/api/requests", {
         method: "POST",
@@ -59,6 +99,24 @@ export default function ParentPage() {
     }
   }
 
+  async function pay(requestId: number) {
+    setPaying(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Couldn't start the payment.");
+      window.location.href = data.approveUrl; // off to PayPal
+    } catch (e: any) {
+      setError(e.message ?? "Couldn't start the payment.");
+      setPaying(false);
+    }
+  }
+
   const s = result ? STYLES[result.status] : null;
 
   return (
@@ -66,6 +124,10 @@ export default function ParentPage() {
       <main className="mx-auto max-w-2xl px-5 py-8 text-gray-900">
         <h1 className="text-4xl font-bold">Hello, Margaret</h1>
         <p className="mt-2 text-xl text-gray-600">What would you like to buy today?</p>
+
+        {banner && (
+          <p className={`mt-6 rounded-xl border-2 p-4 text-xl ${BANNER_STYLES[banner.kind]}`}>{banner.text}</p>
+        )}
 
         <textarea
           value={text}
@@ -142,11 +204,11 @@ export default function ParentPage() {
 
             {result.status === "ready_to_pay" && (
               <button
-                disabled
-                className="mt-5 w-full rounded-xl bg-yellow-400 px-6 py-4 text-2xl font-semibold text-gray-900 opacity-60"
-                title="PayPal checkout is added on Day 3"
+                onClick={() => pay(result.requestId)}
+                disabled={paying}
+                className="mt-5 w-full rounded-xl bg-yellow-400 px-6 py-4 text-2xl font-semibold text-gray-900 disabled:opacity-60"
               >
-                Pay with PayPal (coming next)
+                {paying ? "Taking you to PayPal..." : "Pay with PayPal"}
               </button>
             )}
 
