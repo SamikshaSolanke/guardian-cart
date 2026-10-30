@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 type Result = {
   requestId: number;
-  status: "blocked" | "needs_approval" | "ready_to_pay" | "no_results";
+  status: "blocked" | "needs_approval" | "ready_to_pay" | "no_results" | "approved" | "denied";
   message: string;
   recommendation: null | {
     title: string;
@@ -27,6 +27,8 @@ const STYLES = {
   needs_approval: { box: "border-amber-500 bg-amber-50", label: "Waiting for approval", text: "text-amber-800" },
   blocked: { box: "border-red-600 bg-red-50", label: "Stopped for your safety", text: "text-red-800" },
   no_results: { box: "border-gray-400 bg-gray-50", label: "Let's try again", text: "text-gray-800" },
+  approved: { box: "border-green-600 bg-green-50", label: "Approved", text: "text-green-800" },
+  denied: { box: "border-gray-500 bg-gray-50", label: "Not approved", text: "text-gray-800" },
 } as const;
 
 const BANNER_STYLES = {
@@ -76,6 +78,23 @@ export default function ParentPage() {
       setBanner({ kind: "error", text: "The payment didn't go through. Nothing was charged. Please try again." });
     }
   }, []);
+
+  // While waiting for the caregiver, check for their decision every 3 seconds.
+  useEffect(() => {
+    if (!result || result.status !== "needs_approval") return;
+    const id = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/status?requestId=${result.requestId}`, { cache: "no-store" });
+        const d = await r.json();
+        if (d.status === "approved") {
+          setResult((p) => p && { ...p, status: "approved", message: "Good news! Alex said yes. You can pay now." });
+        } else if (d.status === "denied") {
+          setResult((p) => p && { ...p, status: "denied", message: "Alex wasn't able to approve this one. You can ask for something else." });
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(id);
+  }, [result]);
 
   async function submit(value: string) {
     if (value.trim().length < 3) return;
@@ -192,8 +211,7 @@ export default function ParentPage() {
               <p className="mt-4 text-xl text-gray-800">{result.recommendation.explanation}</p>
             )}
 
-            {result.status !== "ready_to_pay" &&
-              result.status !== "no_results" &&
+            {(result.status === "needs_approval" || result.status === "blocked" || result.status === "denied") &&
               result.decision.reasons.length > 0 && (
                 <ul className="mt-4 list-disc pl-6 text-lg text-gray-800">
                   {result.decision.reasons.map((r, i) => (
@@ -202,7 +220,7 @@ export default function ParentPage() {
                 </ul>
               )}
 
-            {result.status === "ready_to_pay" && (
+            {(result.status === "ready_to_pay" || result.status === "approved") && (
               <button
                 onClick={() => pay(result.requestId)}
                 disabled={paying}
