@@ -7,6 +7,7 @@ fs.mkdirSync(dataDir, { recursive: true });
 
 export const db = new Database(path.join(dataDir, "guardian.db"));
 db.pragma("journal_mode = WAL");
+db.pragma("busy_timeout = 5000");
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS caregivers (
@@ -81,26 +82,33 @@ CREATE TABLE IF NOT EXISTS alerts (
 `);
 
 export function seedIfEmpty() {
-  const row = db.prepare("SELECT COUNT(*) AS n FROM caregivers").get() as { n: number };
-  if (row.n > 0) return;
+  // One immediate transaction, so two processes starting together can't both insert.
+  const run = db.transaction(() => {
+    const row = db.prepare("SELECT COUNT(*) AS n FROM caregivers").get() as { n: number };
+    if (row.n > 0) return;
 
-  const cg = db
-    .prepare("INSERT INTO caregivers (name, email) VALUES (?, ?)")
-    .run("Alex", "alex@example.com");
-  const parent = db
-    .prepare("INSERT INTO parents (name, caregiver_id) VALUES (?, ?)")
-    .run("Margaret", cg.lastInsertRowid);
+    const cg = db
+      .prepare("INSERT INTO caregivers (name, email) VALUES (?, ?)")
+      .run("Alex", "alex@example.com");
+    const parent = db
+      .prepare("INSERT INTO parents (name, caregiver_id) VALUES (?, ?)")
+      .run("Margaret", cg.lastInsertRowid);
 
-  db.prepare(
-    `INSERT INTO rules (parent_id, monthly_budget_cents, per_purchase_limit_cents,
-       approval_threshold_cents, allowed_categories, blocked_merchants)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(
-    parent.lastInsertRowid,
-    15000, // $150 monthly budget
-    8000,  // $80 hard limit per purchase
-    4000,  // above $40 needs caregiver approval
-    JSON.stringify(["home-garden", "health-beauty", "media", "apparel-accessories"]),
-    JSON.stringify([])
-  );
+    db.prepare(
+      `INSERT INTO rules (parent_id, monthly_budget_cents, per_purchase_limit_cents,
+         approval_threshold_cents, allowed_categories, blocked_merchants)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(
+      parent.lastInsertRowid,
+      15000, // $150 monthly budget
+      8000, // $80 hard limit per purchase
+      4000, // above $40 needs caregiver approval
+      JSON.stringify(["home-garden", "health-beauty", "media", "apparel-accessories"]),
+      JSON.stringify([])
+    );
+  });
+  run.immediate();
 }
+
+// Seed on startup, so a fresh (or wiped) database is always usable.
+seedIfEmpty();
