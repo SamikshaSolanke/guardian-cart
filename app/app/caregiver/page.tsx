@@ -153,6 +153,22 @@ export default function CaregiverPage() {
     await load();
   }
 
+    async function resetDemo() {
+    const key = window.prompt("Enter the demo reset key:");
+    if (!key) return;
+    const r = await fetch("/api/demo/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setError(d.error ?? "Reset failed.");
+      return;
+    }
+    window.location.reload();
+  }
+
   async function saveRules() {
     if (!form) return;
     setSaving(true);
@@ -406,6 +422,13 @@ export default function CaregiverPage() {
             </div>
           )}
         </section>
+
+        <footer className="pb-8 text-center">
+          <button onClick={resetDemo} className="text-base text-gray-500 underline">
+            Reset demo data
+          </button>
+        </footer>
+        
       </main>
     </div>
   );
