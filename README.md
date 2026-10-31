@@ -44,12 +44,12 @@ Alex (Margaret's son) sets a monthly budget, a per-purchase limit, and the categ
 
 Open two browser tabs:
 
-- **Margaret (the parent):** LIVE_URL
-- **Alex (the caregiver):** LIVE_URL/caregiver
+- **Margaret (the parent):** [LIVE_URL](https://guardian-cart.onrender.com)
+- **Alex (the caregiver):** [LIVE_URL](https://guardian-cart.onrender.com/caregiver)
 
 **PayPal sandbox buyer (fake money only):**
-- Email: `BUYER_EMAIL`
-- Password: `BUYER_PASSWORD`
+- Email: `sb-wevzx53639929@personal.example.com`
+- Password: `J+O*h2UE`
 
 > If PayPal says *"you are logging in to the account of the seller"*, open an incognito window and use the buyer account above.
 
@@ -111,7 +111,7 @@ Next.js 16 (TypeScript, Tailwind) · SQLite · Groq (LLM) · Channel3 (product s
 You need Node.js 20.9 or newer.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/guardian-cart.git
+git clone https://github.com/SamikshaSolanke/guardian-cart.git
 cd guardian-cart/app
 npm install
 ```
