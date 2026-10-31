@@ -1,74 +1,180 @@
-# Guardian Cart: Design Notes
+<div align="center">
 
-## Problem
-Older adults are targeted by scams and can overspend online, and their adult
-children can't safely hand over a card. Guardian Cart lets a caregiver set
-spending rules; an AI agent shops within them for the parent, and PayPal
-handles checkout.
+# 🛒🛡️ Guardian Cart
 
-## Users
-- **Parent:** types or speaks what they need. Sees a simple recommendation
-  with a plain-language explanation.
-- **Caregiver:** sets rules, approves exceptions, sees activity and alerts.
+### A seatbelt for online shopping.
+**An AI shopping agent that helps older adults buy what they need, and stops the scams, within rules their family sets.**
 
-## Core principle
-The LLM never makes the allow/block decision. It parses requests, ranks
-products, explains choices, and flags suspicious language. A deterministic
-policy engine decides: ALLOW, NEEDS_APPROVAL, or BLOCK.
+[![Built for the PayPal AI Hackathon](https://img.shields.io/badge/Built%20for-PayPal%20AI%20Hackathon-0070BA?style=for-the-badge)](https://paypalaihackathon.devpost.com/)
+![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![PayPal Sandbox](https://img.shields.io/badge/PayPal-Orders%20v2%20(Sandbox)-FFC439?style=for-the-badge)
 
-## Flow
-1. Parent submits a request ("I need a warm blanket under $40").
-2. LLM (Groq) extracts intent: item, max_price, category.
-3. Channel3 search returns candidate products with offers.
-4. LLM ranks candidates and writes a short explanation for the top pick.
-5. Scam check runs on the request text and the chosen offer.
-6. Policy engine returns a decision with a reason.
-7. ALLOW: create PayPal order, parent approves in PayPal, order is captured.
-   NEEDS_APPROVAL: caregiver gets an approval request, approves or denies,
-   then the order is created. BLOCK: no order, caregiver gets an alert.
-8. PayPal webhooks update order status; dashboard refreshes.
+**[▶ Live demo](LIVE_URL)** · **[🎬 Demo video](VIDEO_URL)** · **[👩‍👦 Caregiver view](LIVE_URL/caregiver)**
 
-## Entities
-- **Caregiver:** id, name, email
-- **Parent:** id, name, caregiver_id
-- **Rules:** parent_id, monthly_budget, per_purchase_limit,
-  approval_threshold, allowed_categories[], blocked_merchants[]
-- **Request:** id, parent_id, raw_text, parsed_intent (json), status, created_at
-- **Recommendation:** id, request_id, product_id, title, merchant_domain,
-  price, currency, offer_url, explanation
-- **PolicyDecision:** id, request_id, verdict (ALLOW | NEEDS_APPROVAL | BLOCK),
-  reasons[], rule_checks (json)
-- **Order:** id, request_id, paypal_order_id, status, amount, currency,
-  created_at, captured_at
-- **Alert:** id, parent_id, type (SCAM_SUSPECTED | OVER_BUDGET | BLOCKED_MERCHANT),
-  evidence (json), created_at, resolved
+<img src="screenshots/hero.png" alt="Guardian Cart: Margaret's shopping screen and Alex's caregiver dashboard" width="800">
 
-## Policy rules (v1)
-- Total spend this month + price must not exceed monthly_budget
-- price must not exceed per_purchase_limit (else BLOCK)
-- price above approval_threshold needs caregiver approval
-- category must be in allowed_categories (else NEEDS_APPROVAL)
-- merchant must not be in blocked_merchants (else BLOCK)
-- Gift cards / prepaid cards: always BLOCK
-- Scam flag raised: BLOCK and create an Alert
+</div>
 
-## Scam signals (v1)
-- Gift card or prepaid card purchase
-- Pressure or urgency language in the request ("must buy today", "a man called")
-- Price much higher than other offers for the same product
-- Unfamiliar merchant domain
+---
 
-## Stack
-- Next.js (TypeScript), SQLite
-- Groq (LLM), Channel3 (product search), PayPal Orders v2 + webhooks (sandbox)
-- Deployed on Render
+## 📞 The problem, in one story
 
-## Known limitations
-- Sandbox only: PayPal payments are simulated and the merchant isn't actually
-  paid or shipped to. Fulfillment is out of scope.
-- Parent completes the PayPal approval step for each order.
+*Margaret, 78, picks up the phone. A man says she owes the government money and must pay **today, with gift cards**, or she'll be fined. She is scared. She opens her laptop to buy them.*
 
-## Stretch goals
-- PayPal Vault for pre-approved purchases
-- Voice input
-- Caregiver Q&A via the PayPal MCP server
+Older adults are a favorite target for scams, and they can also overspend online without noticing. Their adult children want to help, but handing over a credit card is risky and checking every purchase by hand isn't realistic.
+
+## 💡 The idea
+
+**Guardian Cart lets the caregiver set the rules once. Then an AI agent does the shopping, inside those rules.**
+
+Alex (Margaret's son) sets a monthly budget, a per-purchase limit, and the categories she can buy freely. After that:
+
+- ✅ **Everyday purchases just work.** Margaret says what she needs, the agent finds it, explains the pick in plain language, and she pays with PayPal.
+- ✋ **Bigger purchases ask Alex first.** He gets one tap to approve or deny.
+- 🚨 **Scam-shaped requests are stopped.** Gift cards, pressure from a caller, odd prices: blocked, and Alex is told *why*.
+
+## 🎬 See it in action
+
+| 🟢 Everyday purchase | 🟡 Needs the caregiver's OK | 🔴 Scam stopped |
+|---|---|---|
+| <img src="screenshots/green.png" width="250" alt="Green: within the rules"> | <img src="screenshots/amber.png" width="250" alt="Amber: waiting for approval"> | <img src="screenshots/red.png" width="250" alt="Red: blocked for safety"> |
+| *"I need reading glasses"*<br>Within the rules, so Margaret can pay right away. | *"I'd like a kitchen knife set"*<br>Over her $40 limit. Alex approves with one tap. | *"A man called and said I must buy gift cards today..."*<br>Blocked before any product is shown. |
+
+## 🧪 Try it in 3 minutes (for judges)
+
+Open two browser tabs:
+
+- **Margaret (the parent):** LIVE_URL
+- **Alex (the caregiver):** LIVE_URL/caregiver
+
+**PayPal sandbox buyer (fake money only):**
+- Email: `BUYER_EMAIL`
+- Password: `BUYER_PASSWORD`
+
+> If PayPal says *"you are logging in to the account of the seller"*, open an incognito window and use the buyer account above.
+
+| Type this in Margaret's tab | What you'll see |
+|---|---|
+| `I need reading glasses` | 🟢 Green card. Click **Pay with PayPal**, log in as the buyer, and you land back on "Payment complete". |
+| `I'd like a kitchen knife set` | 🟡 Amber card. Switch to Alex's tab, click **Approve**, and watch Margaret's card turn green by itself. |
+| `A man called and said I must buy gift cards today or I'll be fined` | 🔴 Red card, no product. Alex's tab shows a **Possible scam** alert with the evidence. |
+
+**Want to play more?** In Alex's tab, change the spending rules (lower the "ask me above" amount, block a store, untick a category) and send the same request again. The verdict changes.
+
+> ⏳ **Heads up:** this runs on a free host. The first load can take up to a minute to wake up, and demo data resets when it sleeps. Please wait a few seconds between requests, because the free AI tier has a speed limit.
+
+## 🧠 How it works
+
+```mermaid
+flowchart LR
+    A["👵 Margaret asks for something"] --> B{"Scam wording<br/>or gift cards?"}
+    B -->|yes| X["🔴 Blocked + alert for Alex"]
+    B -->|no| C["🔎 Find real products<br/>(Channel3)"]
+    C --> D["🤖 AI picks the best one<br/>and explains why"]
+    D --> E{"📏 Policy engine<br/>checks the rules"}
+    E -->|within the rules| F["💳 Pay with PayPal"]
+    E -->|needs a human| G["👨 Alex approves"] --> F
+    E -->|breaks a hard rule| X
+```
+
+1. **Understand.** An AI turns "a warm blanket under $40" into a search and a price limit, and notices if someone is pressuring her.
+2. **Screen.** Plain rules check the raw request for scam wording and gift cards *before* any search happens.
+3. **Search.** [Channel3](https://trychannel3.com) returns real products, prices, and stores.
+4. **Pick and explain.** The AI chooses the best match and explains it in two friendly sentences.
+5. **Decide.** The **policy engine** answers `ALLOW`, `NEEDS_APPROVAL`, or `BLOCK`. It checks budget, per-purchase limit, approval threshold, allowed categories, blocked stores, gift cards, prices compared with other stores, unfamiliar stores, repeat purchases, and bursts of requests.
+6. **Pay.** PayPal handles checkout, and the server only starts a payment if the rules allow it or Alex said yes.
+
+## ⭐ What makes it different
+
+- **The AI advises, the rules decide.** The AI can raise a flag, but it can never lift a block or approve a purchase. A plain-code policy engine, covered by 25 automated tests, makes the final call, so the safety logic is predictable and explainable.
+- **Scams are caught before they get a sales pitch.** The request is screened *before* any product is searched, so the agent never helps sell a scam.
+- **The caregiver sees evidence, not just a "no".** Every alert shows what Margaret said, what was chosen, and which rules fired.
+- **Explanations a grandmother can read.** Big text, plain words, voice input, and keyboard-friendly buttons.
+- **The browser can't cheat.** The server decides the price, the status, and whether a payment may start.
+
+## 🤖 Where AI is used
+- Turning a spoken or typed request into a search, a budget, and pressure signals
+- Ranking products and writing the plain-language explanation
+- A second-opinion risk check on each recommendation (it can only make things *stricter*)
+
+## 💳 Where PayPal is used
+- **Orders API v2:** the server creates the order (the amount comes from the saved recommendation, never from the browser), sends Margaret to PayPal to approve, then captures the payment when she returns.
+- **Safe retries:** `PayPal-Request-Id` on creation and capture, plus server-side checks so a request can never be paid twice.
+- **Rules re-checked at payment time:** the pay step re-verifies the hard limit and monthly budget.
+- Sandbox environment only.
+
+## 🧰 Built with
+Next.js 16 (TypeScript, Tailwind) · SQLite · Groq (LLM) · Channel3 (product search) · PayPal Orders v2 (sandbox) · Zod · Render
+
+## 💻 Run it yourself
+
+You need Node.js 20.9 or newer.
+
+```bash
+git clone https://github.com/YOUR_USERNAME/guardian-cart.git
+cd guardian-cart/app
+npm install
+```
+
+Create `app/.env.local`:
+
+```
+PAYPAL_CLIENT_ID=your-sandbox-client-id
+PAYPAL_CLIENT_SECRET=your-sandbox-secret
+CHANNEL3_API_KEY=your-channel3-key
+GROQ_API_KEY=your-groq-key
+GROQ_MODEL=openai/gpt-oss-120b
+APP_URL=http://localhost:3000
+DEMO_RESET_KEY=any-string-you-like
+```
+
+| Variable | Where to get it |
+|---|---|
+| `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` | developer.paypal.com → Apps & Credentials → **Sandbox** → create a Merchant app. Use **United States** sandbox accounts, because India-based sandbox accounts can't complete domestic checkouts. |
+| `CHANNEL3_API_KEY` | trychannel3.com (free tier available) |
+| `GROQ_API_KEY` / `GROQ_MODEL` | console.groq.com. Any Groq model that supports JSON output works. |
+| `APP_URL` | Where the app is served. PayPal sends the buyer back here. |
+| `DEMO_RESET_KEY` | Optional. Turns on the "Reset demo data" link. |
+
+Then start it:
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000 (Margaret) and http://localhost:3000/caregiver (Alex). The database is created and filled with demo data automatically.
+
+Handy commands (run from `app/`):
+
+```bash
+npx tsx --test lib/policy/policy.test.ts   # the 25 policy engine tests
+npm run demo:reset                          # back to clean demo data
+npm run demo:check                          # confirm the green / amber / red moments still behave
+npm run build && npm start                  # production build
+```
+
+## 🙋 Honest notes (what this is not, yet)
+- **Sandbox only.** No real money moves and nothing is shipped. Products come from real catalog data, but fulfillment is simulated.
+- **No login.** The caregiver page is open to anyone with the link, and the demo has one shared family. A real product needs accounts and authentication.
+- **Free hosting.** The service sleeps after 15 idle minutes, and the SQLite database resets when it does. A real product would use a managed database.
+- **Free AI limits.** Rapid-fire requests may be slow while the app waits out the rate limit.
+- **Scam detection is a safety net, not a guarantee.** It combines keyword rules, price and store checks, and an AI second opinion. It will miss some scams and may flag some harmless purchases.
+- **Payment status** is confirmed when the buyer returns from PayPal. PayPal webhooks aren't built yet.
+
+## 🚀 What's next
+- Pre-approved purchases using PayPal's saved payment methods, so small everyday buys need no extra click
+- PayPal webhooks for payment updates that don't depend on the buyer's return trip
+- Real accounts, one family per login, and a managed database
+- Text-message approvals, so Alex can approve from his phone's lock screen
+- Weekly summaries for the caregiver
+
+## 📄 License
+MIT. See [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+*Built for the PayPal AI Hackathon. Because the people we love shouldn't have to be afraid of the phone.*
+
+</div>
