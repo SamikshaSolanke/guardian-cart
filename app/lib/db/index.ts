@@ -6,8 +6,12 @@ const dataDir = path.join(process.cwd(), "data");
 fs.mkdirSync(dataDir, { recursive: true });
 
 export const db = new Database(path.join(dataDir, "guardian.db"));
-db.pragma("journal_mode = WAL");
-db.pragma("busy_timeout = 5000");
+db.pragma("busy_timeout = 5000"); // must come first, so the next steps wait for locks instead of failing
+try {
+  db.pragma("journal_mode = WAL");
+} catch {
+  // Another process is setting up the file at the same moment. The default mode works fine.
+}
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS caregivers (
